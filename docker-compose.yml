@@ -1,0 +1,26 @@
+services:
+  db:
+    image: postgres:15
+    container_name: bigchallenges
+    restart: always
+    environment:
+      POSTGRES_USER: aleksejbessolicin #свой юзер
+      POSTGRES_PASSWORD: password #свой пароль
+      POSTGRES_DB: terminal # своя дб
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  app:
+    build: .
+    container_name: app
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: postgresql+asyncpg://aleksejbessolicin:password@localhost:5432/terminal # свою
+    depends_on:
+      - db
+
+volumes:
+  postgres_data:
