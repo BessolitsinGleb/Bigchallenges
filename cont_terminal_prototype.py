@@ -905,7 +905,7 @@ def cor_empty_cell_hc(h_cell):
             print(h_cell)
             return h_cell
 
-def find_empty_cells(project_1):            
+def find_empty_cells(project_1):    #   optimized        
             a= A
             b= B
             c= C
@@ -3181,3 +3181,6 @@ elif operation=="Add":          #Full correct
         trainn[0]= int(input('Container number: '))
         to_train= del_cont_trainn(cell_selection)
         print(to_train)
+
+
+# ПЕРЕДЕЛАТЬ ВСЕ НАЪЕР

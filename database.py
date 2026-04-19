@@ -15,7 +15,7 @@ for i, layer in enumerate(layers):
             cell_id = f"{layer}{coord}{j+1}"
             value = data[i, j, k]
             rows.append([cell_id, layer, j+1, coord, value])
-            
+
 engine = create_async_engine("postgresql+asyncpg://aleksejbessolicin:password@localhost:5432/terminal", echo = True)
 
 df = pd.DataFrame(rows, columns=['cell_id', 'layer', 'row_num', 'coord_type', 'value'])
