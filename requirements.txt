@@ -6,3 +6,4 @@ numpy
 pandas
 uvicorn
 asyncpg
+psycopg2-binary
