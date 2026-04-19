@@ -3,7 +3,7 @@ import pandas as pd
 from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy import create_engine
 
-data = np.random.uniform(0, 100, (3, 30, 3))
+data = np.zeros((3, 30, 3))
 
 layers = ['A', 'B', 'C']
 coords = ['X', 'Y', 'Z']
