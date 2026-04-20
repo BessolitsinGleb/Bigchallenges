@@ -2,6 +2,7 @@ import uvicorn
 from fastapi import FastAPI
 from .database import engine, Base
 from fastapi.middleware.cors import CORSMiddleware
+from .routers import router
 
 app = FastAPI(title="Прототип терминала")
 
@@ -13,10 +14,13 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.include_router(router)
+
 @app.on_event("startup")
-async def on_startup():
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
+def on_startup():
+    with engine.begin() as conn:
+        Base.metadata.create_all(bind=engine)
+
 
 if '__main__'==__name__:
     uvicorn.run("main.app", host= "0.0.0.0")
