@@ -167,4 +167,71 @@ def load_cont(value: str,
 
     return {"status": "success"}
 
-# перестановка
+@router.post("/rearrangement")
+def rearrange_cont(value: str,
+            cell: str,
+            db: Session = Depends(get_db)):
+    
+    stmt = select(Coordinates).where(cast(Coordinates.value, String) == value)
+    cell_from = db.execute(stmt).scalar_one_or_none()
+
+    cell_to = select(Coordinates).where(Coordinates.cell_id == cell)
+    cell_to = db.execute(cell_to).scalar_one_or_none()
+
+    if not cell_from:
+        raise HTTPException(404, "not found")
+    if not cell_to:
+        raise HTTPException(404, "not found")
+    if float(cell_from.value) == 0.0:
+        raise HTTPException(403, "cell is empty")
+    if float(cell_to.value) != 0.0:
+        raise HTTPException(403, "cell is not empty")
+    
+    cell__ = list(cell_from.cell_id)
+    if cell__[0] == 'A':
+        cell__[0] = 'B'
+        b_cell = ''.join(cell__)
+
+        num = select(Coordinates).where(Coordinates.cell_id == b_cell)
+        num = db.execute(num).scalar_one_or_none()
+        if float(num.value) != 0.0:
+            raise HTTPException(403, "the cell above is not free")
+    
+    if cell__[0] == 'B':
+        cell__[0] = 'C'
+        c_cell = ''.join(cell__)
+
+        num = select(Coordinates).where(Coordinates.cell_id == c_cell)
+        num = db.execute(num).scalar_one_or_none()
+        if float(num.value) != 0.0:
+            raise HTTPException(403, "the cell above is not free")
+        
+    cell_ = list(cell_to.cell_id)
+    if cell_[0] == 'B':
+        cell_[0] = 'A'
+        a_cell = ''.join(cell_)
+
+        num = select(Coordinates).where(Coordinates.cell_id == a_cell)
+        num = db.execute(num).scalar_one_or_none()
+        if float(num.value) == 0.0:
+            raise HTTPException(403, "there is no support under the cell")
+    if cell_[0] == 'C':
+        cell_[0] = 'B'
+        b_cell = ''.join(cell_)
+
+        num = select(Coordinates).where(Coordinates.cell_id == b_cell)
+        num = db.execute(num).scalar_one_or_none()
+        if float(num.value) == 0.0:
+            raise HTTPException(403, "there is no support under the cell")
+    
+    rearrange_from = update(Coordinates).where(cast(Coordinates.value, String) == value).values(value = cast(0, Float))
+    rearrange_to = update(Coordinates).where(Coordinates.cell_id == cell).values(value = cast(value, Float))
+
+    db.execute(rearrange_from)
+    db.execute(rearrange_to)
+    db.commit()
+
+    return {"status": "success",
+            "container": value,
+            "from": cell_from.cell_id,
+            "to": cell_to.cell_id}
