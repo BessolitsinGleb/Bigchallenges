@@ -1,0 +1,274 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Прототип полуавтоматизированного контейнерного терминала</title>
+
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background: white;
+        margin: 20px;
+      }
+
+      h1 {
+        text-align: center;
+      }
+
+      .card {
+        background: #e6f2ff;
+        border-radius: 12px;
+        padding: 15px;
+        margin-bottom: 15px;
+      }
+
+      .card-header {
+        display: flex;
+        justify-content: space-between;
+        cursor: pointer;
+        font-weight: bold;
+      }
+
+      .arrow {
+        transition: transform 0.3s;
+      }
+
+      .card-content {
+        display: none;
+        margin-top: 10px;
+      }
+
+      input {
+        display: block;
+        margin: 8px 0;
+        padding: 6px;
+        width: 100%;
+      }
+
+      button {
+        background: red;
+        color: white;
+        border: none;
+        padding: 8px;
+        cursor: pointer;
+        border-radius: 6px;
+      }
+
+      button:hover {
+        opacity: 0.8;
+      }
+
+      .result {
+        margin-top: 10px;
+        font-size: 14px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Прототип полуавтоматизированного контейнерного терминала</h1>
+
+    <div class="card">
+      <div class="card-header" onclick="toggle(this)">
+        Найти ячейки
+        <span class="arrow">▼</span>
+      </div>
+      <div class="card-content">
+        <input id="find_cells_value" placeholder="value" />
+        <button onclick="findCells()">Запустить</button>
+        <div class="result" id="res_find_cells"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header" onclick="toggle(this)">
+        Добавить контейнер
+        <span class="arrow">▼</span>
+      </div>
+      <div class="card-content">
+        <input id="add_cell_id" placeholder="cell_id" />
+        <input id="add_value" placeholder="value" />
+        <button onclick="addContainer()">Запустить</button>
+        <div class="result" id="res_add"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header" onclick="toggle(this)">
+        Проверить контейнер
+        <span class="arrow">▼</span>
+      </div>
+      <div class="card-content">
+        <input id="check_num" placeholder="cont_num" />
+        <button onclick="checkContainer()">Запустить</button>
+        <div class="result" id="res_check"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header" onclick="toggle(this)">
+        Найти контейнер по ячейке
+        <span class="arrow">▼</span>
+      </div>
+      <div class="card-content">
+        <input id="find_cont_cell" placeholder="cell_id" />
+        <button onclick="findContainer()">Запустить</button>
+        <div class="result" id="res_find_cont"></div>
+      </div>
+    </div>
+
+    <!-- LOADING -->
+    <div class="card">
+      <div class="card-header" onclick="toggle(this)">
+        Погрузка на транспорт
+        <span class="arrow">▼</span>
+      </div>
+      <div class="card-content">
+        <input id="loading_value" placeholder="value" />
+        <button onclick="loading()">Запустить</button>
+        <div class="result" id="res_loading"></div>
+      </div>
+    </div>
+
+    <!-- REARRANGEMENT -->
+    <div class="card">
+      <div class="card-header" onclick="toggle(this)">
+        Перестановка контейнера
+        <span class="arrow">▼</span>
+      </div>
+      <div class="card-content">
+        <input id="re_value" placeholder="value" />
+        <input id="re_cell" placeholder="cell" />
+        <button onclick="rearrangement()">Запустить</button>
+        <div class="result" id="res_re"></div>
+      </div>
+    </div>
+
+    <script>
+      const API = "http://127.0.0.1:8000";
+
+      / переключение вкладок /;
+      function toggle(header) {
+        const content = header.nextElementSibling;
+        const arrow = header.querySelector(".arrow");
+
+        if (content.style.display === "block") {
+          content.style.display = "none";
+          arrow.style.transform = "rotate(0deg)";
+        } else {
+          content.style.display = "block";
+          arrow.style.transform = "rotate(180deg)";
+        }
+      }
+
+      / универсальный fetch /;
+      function post(url, data, resultId) {
+        fetch(API + url, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(data),
+        })
+          .then((res) => res.json())
+          .then((data) => {
+            document.getElementById(resultId).innerText = JSON.stringify(
+              data,
+              null,
+              2,
+            );
+          })
+          .catch((err) => {
+            document.getElementById(resultId).innerText = err;
+          });
+      }
+
+      / endpoints */;
+
+      function findCells() {
+        const value = document.getElementById("find_cells_value").value;
+
+        fetch(`http://127.0.0.1:8000/container/find_cells?value=${value}`)
+          .then((res) => res.json())
+          .then((data) => {
+            document.getElementById("res_find_cells").innerText =
+              JSON.stringify(data, null, 2);
+          });
+      }
+
+      function addContainer() {
+        post(
+          "/container/add",
+          {
+            cell_id: document.getElementById("add_cell_id").value,
+            value: document.getElementById("add_value").value,
+          },
+          "res_add",
+        );
+      }
+
+      function checkContainer() {
+        const cont_num = document.getElementById("check_num").value;
+
+        fetch(`http://127.0.0.1:8000/container/check?cont_num=${cont_num}`)
+          .then((res) => res.json())
+          .then((data) => {
+            document.getElementById("res_check").innerText = JSON.stringify(
+              data,
+              null,
+              2,
+            );
+          });
+      }
+
+      function findContainer() {
+        const cell_id = document.getElementById("find_cont_cell").value;
+
+        fetch(`http://127.0.0.1:8000/container/find_cont?cell_id=${cell_id}`)
+          .then((res) => res.json())
+          .then((data) => {
+            document.getElementById("res_find_cont").innerText = JSON.stringify(
+              data,
+              null,
+              2,
+            );
+          });
+      }
+
+      function loading() {
+        const value = document.getElementById("loading_value").value;
+
+        fetch(`http://127.0.0.1:8000/container/loading?value=${value}`, {
+          method: "POST",
+        })
+          .then((res) => res.json())
+          .then((data) => {
+            document.getElementById("res_loading").innerText = JSON.stringify(
+              data,
+              null,
+              2,
+            );
+          });
+      }
+
+      function rearrangement() {
+        const value = document.getElementById("re_value").value;
+        const cell = document.getElementById("re_cell").value;
+
+        fetch(
+          `http://127.0.0.1:8000/container/rearrangement?value=${value}&cell=${cell}`,
+          {
+            method: "POST",
+          },
+        )
+          .then((res) => res.json())
+          .then((data) => {
+            document.getElementById("res_re").innerText = JSON.stringify(
+              data,
+              null,
+              2,
+            );
+          });
+      }
+    </script>
+  </body>
+</html>

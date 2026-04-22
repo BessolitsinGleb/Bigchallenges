@@ -169,8 +169,8 @@ def load_cont(value: str,
 
 @router.post("/rearrangement")
 def rearrange_cont(value: str,
-            cell: str,
-            db: Session = Depends(get_db)):
+                   cell: str,
+                   db: Session = Depends(get_db)):
     
     stmt = select(Coordinates).where(cast(Coordinates.value, String) == value)
     cell_from = db.execute(stmt).scalar_one_or_none()
@@ -235,3 +235,5 @@ def rearrange_cont(value: str,
             "container": value,
             "from": cell_from.cell_id,
             "to": cell_to.cell_id}
+
+#check_coordinates, check_mooving
