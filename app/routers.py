@@ -3,7 +3,7 @@ from .database import get_db
 from sqlalchemy.orm import Session
 from .models import Coordinates, Mooving
 from sqlalchemy import select, cast, String, update, Float
-from .schemas import FindCells, AddCont
+from .schemas import FindCells, AddCont, Layer, Mooves
 from typing import List
 from datetime import datetime
 
@@ -236,4 +236,17 @@ def rearrange_cont(value: str,
             "from": cell_from.cell_id,
             "to": cell_to.cell_id}
 
-#check_coordinates, check_mooving
+@router.get("/layer", response_model=List[Layer])
+def get_layer(layer: str,
+          db: Session = Depends(get_db)):
+    stmt = select(Coordinates).where(Coordinates.layer == layer)
+    lay = db.execute(stmt).scalars().all()
+
+    return lay
+
+@router.get("/mooves", response_model=List[Mooves])
+def mooves(db: Session = Depends(get_db)):
+    stmt = select(Mooving)
+    res = db.execute(stmt).scalars().all()
+
+    return res
