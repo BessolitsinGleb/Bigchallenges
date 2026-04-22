@@ -5,6 +5,47 @@
     <title>Прототип полуавтоматизированного контейнерного терминала</title>
 
     <style>
+      /* слой */
+      .layer-block {
+        background: #e6f2ff;
+        padding: 15px;
+        border-radius: 12px;
+        margin-bottom: 20px;
+      }
+
+      #layer_table {
+        margin-top: 10px;
+        border-collapse: collapse;
+        width: 100%;
+      }
+
+      #layer_table td {
+        background: white;
+        border: 1px solid #ccc;
+        padding: 8px;
+        text-align: center;
+      }
+
+      /* движения */
+      .moves-block {
+        background: #333;
+        padding: 15px;
+        border-radius: 12px;
+      }
+
+      #moves_table {
+        margin-top: 10px;
+        width: 100%;
+        border-collapse: collapse;
+        color: white;
+      }
+
+      #moves_table td,
+      #moves_table th {
+        border: 1px solid white;
+        padding: 8px;
+        text-align: center;
+      }
       body {
         font-family: Arial, sans-serif;
         background: white;
@@ -143,6 +184,23 @@
       </div>
     </div>
 
+    <h2>Слой контейнеров</h2>
+
+    <div class="layer-block">
+      <input id="layer_input" placeholder="Введите слой (A, B, C)" />
+      <button onclick="loadLayer()">Показать</button>
+
+      <table id="layer_table"></table>
+    </div>
+
+    <h2>Движения контейнеров</h2>
+
+    <div class="moves-block">
+      <button onclick="loadMoves()">Загрузить движения</button>
+
+      <table id="moves_table"></table>
+    </div>
+
     <script>
       const API = "http://127.0.0.1:8000";
 
@@ -267,6 +325,77 @@
               null,
               2,
             );
+          });
+      }
+
+      function loadLayer() {
+        const layer = document.getElementById("layer_input").value;
+
+        fetch(`http://127.0.0.1:8000/container/layer?layer=${layer}`)
+          .then((res) => res.json())
+          .then((data) => {
+            // сортировка: AX1, AY1, AZ1 ... AX2 ...
+            data.sort((a, b) => {
+              const parse = (cell) => {
+                const col = cell[1]; // X Y Z
+                const row = parseInt(cell.slice(2));
+                return { col, row };
+              };
+
+              const A = parse(a.cell_id);
+              const B = parse(b.cell_id);
+
+              if (A.row !== B.row) return A.row - B.row;
+              return A.col.localeCompare(B.col);
+            });
+
+            const table = document.getElementById("layer_table");
+            table.innerHTML = "";
+
+            let currentRow = -1;
+            let tr;
+
+            data.forEach((item) => {
+              const rowNum = parseInt(item.cell_id.slice(2));
+
+              if (rowNum !== currentRow) {
+                tr = document.createElement("tr");
+                table.appendChild(tr);
+                currentRow = rowNum;
+              }
+
+              const td = document.createElement("td");
+              td.innerText = `${item.cell_id}\n${item.value}`;
+              tr.appendChild(td);
+            });
+          });
+      }
+      function loadMoves() {
+        fetch("http://127.0.0.1:8000/container/mooves")
+          .then((res) => res.json())
+          .then((data) => {
+            const table = document.getElementById("moves_table");
+            table.innerHTML = "";
+
+            const header = document.createElement("tr");
+            header.innerHTML = `
+              <th>Контейнер</th>
+              <th>Дата загрузки</th>
+              <th>Дата выгрузки</th>
+            `;
+            table.appendChild(header);
+
+            data.forEach((item) => {
+              const tr = document.createElement("tr");
+
+              tr.innerHTML = `
+                <td>${item.value}</td>
+                <td>${item.added_at}</td>
+                <td>${item.deleted_at}</td>
+              `;
+
+              table.appendChild(tr);
+            });
           });
       }
     </script>
