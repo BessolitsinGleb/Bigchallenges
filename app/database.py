@@ -21,7 +21,7 @@ engine = create_engine("postgresql+psycopg://aleksejbessolicin:password@localhos
 # df = pd.DataFrame(rows, columns=['cell_id', 'layer', 'row_num', 'coord_type', 'value'])
 # df.to_sql('container_storage', engine, if_exists='replace', index=False)
 
-print("success")
+# print("success")
 
 sync_session = sessionmaker(engine, expire_on_commit=False, class_=Session)
 
