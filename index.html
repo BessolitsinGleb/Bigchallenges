@@ -1,0 +1,1145 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Прототип контейнерного терминала</title>
+    <style>
+      :root {
+        --bg: linear-gradient(135deg, #f4efe4 0%, #dfe8f3 100%);
+        --panel: rgba(255, 252, 247, 0.92);
+        --panel-dark: #17324a;
+        --line: rgba(23, 50, 74, 0.16);
+        --text: #102332;
+        --muted: #556b7c;
+        --accent: #d34d2d;
+        --accent-dark: #a9381d;
+        --empty: #f7f1e8;
+        --busy: #cfe3f6;
+        --shadow: 0 20px 45px rgba(19, 41, 60, 0.12);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+        color: var(--text);
+        background: var(--bg);
+      }
+
+      .page {
+        max-width: 1280px;
+        margin: 0 auto;
+        padding: 32px 20px 48px;
+      }
+
+      .hero {
+        display: grid;
+        grid-template-columns: 1.2fr 0.8fr;
+        gap: 18px;
+        margin-bottom: 24px;
+      }
+
+      .hero-card,
+      .summary,
+      .card,
+      .table-panel {
+        background: var(--panel);
+        border: 1px solid rgba(255, 255, 255, 0.6);
+        border-radius: 24px;
+        box-shadow: var(--shadow);
+        backdrop-filter: blur(12px);
+      }
+
+      .hero-card {
+        padding: 28px;
+      }
+
+      .hero h1 {
+        margin: 0 0 12px;
+        font-size: clamp(2rem, 4vw, 3.4rem);
+        line-height: 0.95;
+        letter-spacing: -0.05em;
+        text-transform: uppercase;
+      }
+
+      .hero p {
+        margin: 0;
+        max-width: 60ch;
+        color: var(--muted);
+        font-size: 1rem;
+      }
+
+      .hero-actions {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-top: 20px;
+      }
+
+      .summary {
+        padding: 24px;
+        display: grid;
+        gap: 12px;
+      }
+
+      .summary-title {
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        color: var(--muted);
+      }
+
+      .summary-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+      }
+
+      .stat {
+        border-radius: 18px;
+        padding: 14px;
+        background: rgba(207, 227, 246, 0.46);
+        border: 1px solid rgba(16, 35, 50, 0.08);
+      }
+
+      .stat strong {
+        display: block;
+        font-size: 1.7rem;
+        margin-bottom: 4px;
+      }
+
+      .stat span {
+        color: var(--muted);
+        font-size: 0.9rem;
+      }
+
+      .layout {
+        display: grid;
+        grid-template-columns: minmax(340px, 420px) minmax(0, 1fr);
+        gap: 20px;
+      }
+
+      .controls {
+        display: grid;
+        gap: 14px;
+        align-content: start;
+      }
+
+      .card {
+        overflow: hidden;
+      }
+
+      .card-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 18px 20px;
+        cursor: pointer;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        font-size: 0.9rem;
+      }
+
+      .card-header:hover {
+        background: rgba(207, 227, 246, 0.28);
+      }
+
+      .arrow {
+        transition: transform 0.25s ease;
+      }
+
+      .card-content {
+        display: none;
+        padding: 0 20px 20px;
+      }
+
+      .card-content.open {
+        display: block;
+      }
+
+      label {
+        display: block;
+        margin: 12px 0 6px;
+        font-size: 0.78rem;
+        font-weight: 700;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+      }
+
+      input,
+      select,
+      button {
+        width: 100%;
+        border-radius: 14px;
+        font: inherit;
+      }
+
+      input,
+      select {
+        border: 1px solid var(--line);
+        padding: 12px 14px;
+        background: rgba(255, 255, 255, 0.7);
+        color: var(--text);
+      }
+
+      button {
+        border: 0;
+        padding: 12px 16px;
+        font-weight: 700;
+        cursor: pointer;
+        transition:
+          transform 0.18s ease,
+          opacity 0.18s ease,
+          background 0.18s ease;
+      }
+
+      button:hover {
+        transform: translateY(-1px);
+      }
+
+      .btn-primary {
+        background: var(--accent);
+        color: white;
+      }
+
+      .btn-primary:hover {
+        background: var(--accent-dark);
+      }
+
+      .btn-secondary {
+        background: #183852;
+        color: white;
+      }
+
+      .btn-secondary:hover {
+        background: #10293d;
+      }
+
+      .btn-ghost {
+        background: rgba(24, 56, 82, 0.08);
+        color: var(--text);
+      }
+
+      .result,
+      .info-box {
+        margin-top: 12px;
+        padding: 12px 14px;
+        border-radius: 14px;
+        background: rgba(255, 255, 255, 0.72);
+        border: 1px solid rgba(16, 35, 50, 0.08);
+        white-space: pre-wrap;
+        font-family: "Consolas", "Courier New", monospace;
+        font-size: 0.92rem;
+        min-height: 48px;
+      }
+
+      .workspace {
+        display: grid;
+        gap: 20px;
+      }
+
+      .table-panel {
+        padding: 20px;
+      }
+
+      .panel-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 16px;
+      }
+
+      .panel-head h2 {
+        margin: 0;
+        font-size: 1rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+      }
+
+      .panel-head p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 0.88rem;
+      }
+
+      .layer-actions {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+
+      .terminal-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 12px;
+      }
+
+      .layer-card {
+        border-radius: 20px;
+        padding: 14px;
+        background: rgba(207, 227, 246, 0.3);
+        border: 1px solid rgba(16, 35, 50, 0.08);
+      }
+
+      .layer-card.active {
+        background: rgba(211, 77, 45, 0.14);
+        border-color: rgba(211, 77, 45, 0.28);
+      }
+
+      .layer-card h3 {
+        margin: 0 0 12px;
+        font-size: 1rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+
+      th,
+      td {
+        border: 1px solid rgba(16, 35, 50, 0.08);
+        text-align: center;
+        padding: 10px 8px;
+      }
+
+      th {
+        background: rgba(24, 56, 82, 0.1);
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+      }
+
+      td.empty {
+        background: var(--empty);
+        color: #85786e;
+      }
+
+      td.busy {
+        background: var(--busy);
+        font-weight: 700;
+      }
+
+      .moves-table {
+        overflow-x: auto;
+      }
+
+      .moves-table table {
+        min-width: 560px;
+      }
+
+      .subtle {
+        color: var(--muted);
+        font-size: 0.88rem;
+      }
+
+      @media (max-width: 1024px) {
+        .hero,
+        .layout,
+        .terminal-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      @media (max-width: 640px) {
+        .page {
+          padding: 18px 14px 28px;
+        }
+
+        .hero-card,
+        .summary,
+        .table-panel,
+        .card-header,
+        .card-content {
+          padding-left: 16px;
+          padding-right: 16px;
+        }
+
+        .summary-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <section class="hero">
+        <div class="hero-card">
+          <h1>Контейнерный терминал</h1>
+          <p>
+            Демонстрационная версия интерфейса контейнерного терминала для
+            работы с размещением, проверкой и перемещением контейнеров.
+          </p>
+          <div class="hero-actions">
+            <button class="btn-primary" onclick="loadLayer()">Показать слой</button>
+            <button class="btn-secondary" onclick="loadMoves()">
+              Показать движения
+            </button>
+            <button class="btn-ghost" onclick="resetSimulation()">
+              Сбросить состояние
+            </button>
+          </div>
+        </div>
+
+        <aside class="summary">
+          <div class="summary-title">Состояние терминала</div>
+          <div class="summary-grid" id="summary_grid"></div>
+          <div class="info-box" id="status_box">
+            Состояние загружается...
+          </div>
+        </aside>
+      </section>
+
+      <section class="layout">
+        <div class="controls">
+          <div class="card">
+            <div class="card-header" onclick="toggle(this)">
+              Найти ячейки по контейнеру
+              <span class="arrow">▼</span>
+            </div>
+            <div class="card-content open">
+              <label for="find_cells_value">Номер контейнера</label>
+              <input id="find_cells_value" placeholder="Например, 208" />
+              <button class="btn-primary" onclick="findCells()">Выполнить</button>
+              <div class="result" id="res_find_cells"></div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header" onclick="toggle(this)">
+              Добавить контейнер
+              <span class="arrow">▼</span>
+            </div>
+            <div class="card-content">
+              <label for="add_cell_id">Ячейка</label>
+              <input id="add_cell_id" placeholder="Например, BX5" />
+              <label for="add_value">Номер контейнера</label>
+              <input id="add_value" placeholder="Например, 7001" />
+              <button class="btn-primary" onclick="addContainer()">Добавить</button>
+              <div class="result" id="res_add"></div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header" onclick="toggle(this)">
+              Проверить контейнер сверху
+              <span class="arrow">▼</span>
+            </div>
+            <div class="card-content">
+              <label for="check_num">Номер контейнера</label>
+              <input id="check_num" placeholder="Например, 31" />
+              <button class="btn-primary" onclick="checkContainer()">
+                Проверить
+              </button>
+              <div class="result" id="res_check"></div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header" onclick="toggle(this)">
+              Найти контейнер по ячейке
+              <span class="arrow">▼</span>
+            </div>
+            <div class="card-content">
+              <label for="find_cont_cell">Ячейка</label>
+              <input id="find_cont_cell" placeholder="Например, AY4" />
+              <button class="btn-primary" onclick="findContainer()">Найти</button>
+              <div class="result" id="res_find_cont"></div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header" onclick="toggle(this)">
+              Погрузка на транспорт
+              <span class="arrow">▼</span>
+            </div>
+            <div class="card-content">
+              <label for="loading_value">Номер контейнера</label>
+              <input id="loading_value" placeholder="Например, 96" />
+              <button class="btn-primary" onclick="loading()">Выгрузить</button>
+              <div class="result" id="res_loading"></div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header" onclick="toggle(this)">
+              Перестановка контейнера
+              <span class="arrow">▼</span>
+            </div>
+            <div class="card-content">
+              <label for="re_value">Номер контейнера</label>
+              <input id="re_value" placeholder="Например, 103" />
+              <label for="re_cell">Новая ячейка</label>
+              <input id="re_cell" placeholder="Например, BX28" />
+              <button class="btn-primary" onclick="rearrangement()">
+                Переместить
+              </button>
+              <div class="result" id="res_re"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="workspace">
+          <div class="table-panel">
+            <div class="panel-head">
+              <div>
+                <h2>Слой контейнеров</h2>
+                <p>Показывает все ячейки выбранного слоя и их текущее состояние.</p>
+              </div>
+              <div class="layer-actions">
+                <select id="layer_input">
+                  <option value="A">Слой A</option>
+                  <option value="B">Слой B</option>
+                  <option value="C">Слой C</option>
+                </select>
+                <button class="btn-secondary" onclick="loadLayer()">
+                  Обновить
+                </button>
+              </div>
+            </div>
+            <div class="terminal-grid" id="layer_overview"></div>
+          </div>
+
+          <div class="table-panel">
+            <div class="panel-head">
+              <div>
+                <h2>Журнал движений</h2>
+                <p>История загрузок, выгрузок и перестановок контейнеров.</p>
+              </div>
+              <button class="btn-secondary" onclick="loadMoves()">Обновить</button>
+            </div>
+            <div class="moves-table">
+              <table id="moves_table"></table>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <script>
+      const STORAGE_KEY = "bigchallenges-client-sim-v1";
+      const LAYERS = ["A", "B", "C"];
+      const COORDS = ["X", "Y", "Z"];
+      const INITIAL_MATRIX = {
+        A: [
+          [1, 2, 3],
+          [4, 5, 6],
+          [7, 8, 9],
+          [208, 29, 30],
+          [31, 32, 33],
+          [34, 35, 36],
+          [37, 38, 39],
+          [40, 41, 42],
+          [43, 44, 45],
+          [46, 47, 48],
+          [49, 50, 51],
+          [52, 53, 54],
+          [55, 56, 57],
+          [58, 59, 60],
+          [61, 62, 63],
+          [64, 65, 66],
+          [67, 68, 69],
+          [70, 71, 72],
+          [73, 74, 75],
+          [76, 77, 78],
+          [79, 80, 81],
+          [82, 83, 84],
+          [85, 86, 87],
+          [88, 89, 90],
+          [91, 92, 93],
+          [94, 95, 96],
+          [97, 98, 99],
+          [100, 101, 102],
+          [103, 104, 105],
+          [106, 107, 108],
+        ],
+        B: [
+          [11, 12, 13],
+          [14, 15, 16],
+          [17, 18, 19],
+          [128, 129, 130],
+          [0, 132, 133],
+          [134, 135, 136],
+          [137, 138, 139],
+          [140, 0, 142],
+          [143, 144, 145],
+          [0, 147, 148],
+          [149, 150, 151],
+          [152, 153, 154],
+          [155, 0, 157],
+          [158, 159, 160],
+          [161, 162, 163],
+          [164, 165, 166],
+          [167, 168, 169],
+          [170, 171, 172],
+          [0, 174, 175],
+          [176, 177, 178],
+          [179, 180, 181],
+          [182, 183, 0],
+          [185, 186, 187],
+          [188, 189, 190],
+          [191, 0, 193],
+          [194, 195, 196],
+          [197, 198, 199],
+          [0, 1101, 1102],
+          [1103, 1104, 1105],
+          [1106, 0, 1108],
+        ],
+        C: [
+          [21, 22, 23],
+          [24, 25, 26],
+          [27, 28, 29],
+          [228, 229, 230],
+          [0, 232, 233],
+          [0, 235, 236],
+          [237, 238, 239],
+          [240, 0, 242],
+          [243, 244, 245],
+          [0, 247, 248],
+          [249, 250, 251],
+          [252, 253, 254],
+          [255, 0, 257],
+          [258, 259, 260],
+          [261, 262, 263],
+          [264, 265, 266],
+          [267, 268, 269],
+          [0, 271, 272],
+          [0, 274, 275],
+          [276, 277, 278],
+          [279, 280, 281],
+          [282, 283, 0],
+          [285, 286, 287],
+          [288, 289, 290],
+          [291, 0, 293],
+          [294, 295, 296],
+          [297, 298, 299],
+          [0, 2101, 2102],
+          [2103, 2104, 2105],
+          [2106, 0, 2108],
+        ],
+      };
+
+      let state = loadState();
+
+      function buildInitialCells() {
+        const cells = [];
+
+        LAYERS.forEach((layer) => {
+          INITIAL_MATRIX[layer].forEach((row, rowIndex) => {
+            row.forEach((value, coordIndex) => {
+              cells.push({
+                cell_id: `${layer}${COORDS[coordIndex]}${rowIndex + 1}`,
+                layer,
+                row_num: rowIndex + 1,
+                coord_type: COORDS[coordIndex],
+                value: String(value),
+              });
+            });
+          });
+        });
+
+        return cells;
+      }
+
+      function initialState() {
+        return {
+          cells: buildInitialCells(),
+          moves: [],
+          lastAction: "Демонстрационная версия интерфейса готова к работе.",
+        };
+      }
+
+      function loadState() {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) {
+          return initialState();
+        }
+
+        try {
+          const parsed = JSON.parse(raw);
+          if (!Array.isArray(parsed.cells) || !Array.isArray(parsed.moves)) {
+            return initialState();
+          }
+
+          return parsed;
+        } catch {
+          return initialState();
+        }
+      }
+
+      function saveState(message = state.lastAction) {
+        state.lastAction = message;
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+        renderSummary();
+      }
+
+      function resetSimulation() {
+        state = initialState();
+        saveState("Состояние терминала сброшено.");
+        clearResults();
+        loadLayer();
+        loadMoves();
+      }
+
+      function clearResults() {
+        [
+          "res_find_cells",
+          "res_add",
+          "res_check",
+          "res_find_cont",
+          "res_loading",
+          "res_re",
+        ].forEach((id) => {
+          const node = document.getElementById(id);
+          if (node) {
+            node.innerText = "";
+          }
+        });
+      }
+
+      function toggle(header) {
+        const content = header.nextElementSibling;
+        const arrow = header.querySelector(".arrow");
+        const isOpen = content.classList.contains("open");
+
+        content.classList.toggle("open", !isOpen);
+        arrow.style.transform = isOpen ? "rotate(0deg)" : "rotate(180deg)";
+      }
+
+      function nowIso() {
+        return new Date().toISOString();
+      }
+
+      function formatResult(id, data) {
+        document.getElementById(id).innerText = JSON.stringify(data, null, 2);
+      }
+
+      function fail(id, detail, status = 403) {
+        const payload = { detail, status };
+        formatResult(id, payload);
+        return null;
+      }
+
+      function normalizeCellId(cellId) {
+        return String(cellId || "").trim().toUpperCase();
+      }
+
+      function normalizeValue(value) {
+        return String(value || "").trim();
+      }
+
+      function getCell(cellId) {
+        return state.cells.find((item) => item.cell_id === normalizeCellId(cellId));
+      }
+
+      function findCellsByValue(value) {
+        const target = normalizeValue(value);
+        return state.cells.filter((item) => item.value === target);
+      }
+
+      function getSupportCell(cellId) {
+        const cell = normalizeCellId(cellId);
+        if (cell.startsWith("B")) {
+          return getCell(`A${cell.slice(1)}`);
+        }
+
+        if (cell.startsWith("C")) {
+          return getCell(`B${cell.slice(1)}`);
+        }
+
+        return null;
+      }
+
+      function getUpperCells(cellId) {
+        const cell = normalizeCellId(cellId);
+        const suffix = cell.slice(1);
+
+        if (cell.startsWith("A")) {
+          return [getCell(`B${suffix}`), getCell(`C${suffix}`)].filter(Boolean);
+        }
+
+        if (cell.startsWith("B")) {
+          return [getCell(`C${suffix}`)].filter(Boolean);
+        }
+
+        return [];
+      }
+
+      function ensureCellExists(cell, resultId) {
+        if (!cell) {
+          return fail(resultId, "not found", 404);
+        }
+
+        return cell;
+      }
+
+      function ensureCellFree(cell, resultId) {
+        if (Number(cell.value) !== 0) {
+          return fail(resultId, "cell is not empty", 403);
+        }
+
+        return cell;
+      }
+
+      function ensureCellHasSupport(cell, resultId) {
+        const support = getSupportCell(cell.cell_id);
+        if (support && Number(support.value) === 0) {
+          return fail(resultId, "there is no support under the cell", 403);
+        }
+
+        return cell;
+      }
+
+      function ensureCellAboveFree(cell, resultId) {
+        const blocked = getUpperCells(cell.cell_id).find(
+          (item) => Number(item.value) !== 0,
+        );
+
+        if (blocked) {
+          return fail(resultId, "the cell above is not free", 403);
+        }
+
+        return cell;
+      }
+
+      function recordMoveStart(value) {
+        state.moves.push({
+          value,
+          added_at: nowIso(),
+          deleted_at: null,
+        });
+      }
+
+      function recordMoveEnd(value) {
+        const active = [...state.moves]
+          .reverse()
+          .find((item) => item.value === value && !item.deleted_at);
+
+        if (active) {
+          active.deleted_at = nowIso();
+        }
+      }
+
+      function findCells() {
+        const value = normalizeValue(
+          document.getElementById("find_cells_value").value,
+        );
+
+        const result = findCellsByValue(value).map((item) => ({
+          cell_id: item.cell_id,
+        }));
+
+        formatResult("res_find_cells", result);
+      }
+
+      function addContainer() {
+        const cellId = normalizeCellId(document.getElementById("add_cell_id").value);
+        const value = normalizeValue(document.getElementById("add_value").value);
+
+        if (!value || value === "0") {
+          fail("res_add", "container number must not be empty or 0", 400);
+          return;
+        }
+
+        if (findCellsByValue(value).length > 0) {
+          fail("res_add", "container already exists", 403);
+          return;
+        }
+
+        const cell = ensureCellExists(getCell(cellId), "res_add");
+        if (!cell) {
+          return;
+        }
+
+        if (!ensureCellFree(cell, "res_add")) {
+          return;
+        }
+
+        if (!ensureCellHasSupport(cell, "res_add")) {
+          return;
+        }
+
+        cell.value = value;
+        recordMoveStart(value);
+        saveState(`Контейнер ${value} добавлен в ячейку ${cellId}.`);
+
+        formatResult("res_add", {
+          status: "success",
+          cell: cellId,
+          container: value,
+        });
+
+        loadLayer();
+        loadMoves();
+      }
+
+      function checkContainer() {
+        const value = normalizeValue(document.getElementById("check_num").value);
+        const container = ensureCellExists(
+          findCellsByValue(value)[0],
+          "res_check",
+        );
+
+        if (!container) {
+          return;
+        }
+
+        const upperCells = getUpperCells(container.cell_id);
+        if (upperCells.length === 0) {
+          formatResult(
+            "res_check",
+            "there are no other containers above your container",
+          );
+          return;
+        }
+
+        const payload = [
+          upperCells.map((item) => item.cell_id),
+          upperCells.map((item) => item.value),
+        ];
+
+        formatResult("res_check", payload);
+      }
+
+      function findContainer() {
+        const cellId = normalizeCellId(
+          document.getElementById("find_cont_cell").value,
+        );
+        const cell = ensureCellExists(getCell(cellId), "res_find_cont");
+
+        if (!cell) {
+          return;
+        }
+
+        formatResult("res_find_cont", {
+          status: "success",
+          cont_num: cell.value,
+        });
+      }
+
+      function loading() {
+        const value = normalizeValue(document.getElementById("loading_value").value);
+
+        if (value === "0") {
+          fail("res_loading", "no", 404);
+          return;
+        }
+
+        const container = ensureCellExists(
+          findCellsByValue(value)[0],
+          "res_loading",
+        );
+
+        if (!container) {
+          return;
+        }
+
+        if (!ensureCellAboveFree(container, "res_loading")) {
+          return;
+        }
+
+        container.value = "0";
+        recordMoveEnd(value);
+        saveState(`Контейнер ${value} выгружен на транспорт.`);
+
+        formatResult("res_loading", { status: "success" });
+        loadLayer();
+        loadMoves();
+      }
+
+      function rearrangement() {
+        const value = normalizeValue(document.getElementById("re_value").value);
+        const targetId = normalizeCellId(document.getElementById("re_cell").value);
+
+        const source = ensureCellExists(findCellsByValue(value)[0], "res_re");
+        if (!source) {
+          return;
+        }
+
+        const target = ensureCellExists(getCell(targetId), "res_re");
+        if (!target) {
+          return;
+        }
+
+        if (Number(source.value) === 0) {
+          fail("res_re", "cell is empty", 403);
+          return;
+        }
+
+        if (!ensureCellFree(target, "res_re")) {
+          return;
+        }
+
+        if (!ensureCellAboveFree(source, "res_re")) {
+          return;
+        }
+
+        if (!ensureCellHasSupport(target, "res_re")) {
+          return;
+        }
+
+        const fromCell = source.cell_id;
+        source.value = "0";
+        target.value = value;
+        saveState(`Контейнер ${value} перемещён из ${fromCell} в ${targetId}.`);
+
+        formatResult("res_re", {
+          status: "success",
+          container: value,
+          from: fromCell,
+          to: targetId,
+        });
+
+        loadLayer();
+      }
+
+      function cellsForLayer(layer) {
+        return state.cells
+          .filter((item) => item.layer === layer)
+          .sort((a, b) => {
+            if (a.row_num !== b.row_num) {
+              return a.row_num - b.row_num;
+            }
+
+            return a.coord_type.localeCompare(b.coord_type);
+          });
+      }
+
+      function renderLayerTable(layer) {
+        const cells = cellsForLayer(layer);
+        const rows = [];
+
+        for (let rowNum = 1; rowNum <= 30; rowNum += 1) {
+          rows.push(cells.filter((item) => item.row_num === rowNum));
+        }
+
+        return `
+          <table>
+            <thead>
+              <tr>
+                <th>X</th>
+                <th>Y</th>
+                <th>Z</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${rows
+                .map(
+                  (row) => `
+                    <tr>
+                      ${row
+                        .map((item) => {
+                          const empty = Number(item.value) === 0;
+                          return `
+                            <td class="${empty ? "empty" : "busy"}" title="${item.cell_id}">
+                              <strong>${item.cell_id}</strong><br />
+                              ${item.value}
+                            </td>
+                          `;
+                        })
+                        .join("")}
+                    </tr>
+                  `,
+                )
+                .join("")}
+            </tbody>
+          </table>
+        `;
+      }
+
+      function loadLayer() {
+        const selectedLayer = document.getElementById("layer_input").value;
+        const overview = document.getElementById("layer_overview");
+
+        overview.innerHTML = LAYERS.map(
+          (layer) => `
+            <div class="layer-card ${layer === selectedLayer ? "active" : ""}">
+              <h3>Слой ${layer}</h3>
+              ${renderLayerTable(layer)}
+            </div>
+          `,
+        ).join("");
+      }
+
+      function loadMoves() {
+        const table = document.getElementById("moves_table");
+        const sorted = [...state.moves].sort((a, b) =>
+          b.added_at.localeCompare(a.added_at),
+        );
+
+        table.innerHTML = `
+          <thead>
+            <tr>
+              <th>Контейнер</th>
+              <th>Дата загрузки</th>
+              <th>Дата выгрузки</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${
+              sorted.length
+                ? sorted
+                    .map(
+                      (item) => `
+                        <tr>
+                          <td>${item.value}</td>
+                          <td>${item.added_at ?? ""}</td>
+                          <td>${item.deleted_at ?? ""}</td>
+                        </tr>
+                      `,
+                    )
+                    .join("")
+                : `
+                    <tr>
+                      <td colspan="3">Журнал пока пуст.</td>
+                    </tr>
+                  `
+            }
+          </tbody>
+        `;
+      }
+
+      function renderSummary() {
+        const total = state.cells.length;
+        const busy = state.cells.filter((item) => Number(item.value) !== 0).length;
+        const empty = total - busy;
+        const loaded = state.moves.filter((item) => !item.deleted_at).length;
+
+        document.getElementById("summary_grid").innerHTML = `
+          <div class="stat">
+            <strong>${total}</strong>
+            <span>Всего ячеек</span>
+          </div>
+          <div class="stat">
+            <strong>${busy}</strong>
+            <span>Занято</span>
+          </div>
+          <div class="stat">
+            <strong>${empty}</strong>
+            <span>Свободно</span>
+          </div>
+          <div class="stat">
+            <strong>${loaded}</strong>
+            <span>Активных движений</span>
+          </div>
+        `;
+
+        document.getElementById("status_box").innerText = state.lastAction;
+      }
+
+      renderSummary();
+      loadLayer();
+      loadMoves();
+    </script>
+  </body>
+</html>
